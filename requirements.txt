@@ -1,0 +1,7 @@
+nose
+sphinx
+
+numpy==1.13.1
+pandas==0.20.3
+scipy==1.0.0b1
+tabulate==0.7.7
