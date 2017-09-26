@@ -17,7 +17,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.match_data and args.home_team and args.away_team:
-        predictor = PoissonPredictor(args.match_data)
+        predictor = PoissonPredictor(args.match_data.split(','))
 
         predictor.calc()
 

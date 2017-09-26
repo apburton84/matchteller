@@ -5,10 +5,15 @@ import scipy.stats as st
 class PoissonPredictor(object):
     """ Poisson Model to Predict the out of Associate Football Matches"""
 
-    def __init__(self, data_path):
+    def __init__(self, data_paths=[]):
         """ Initialise the Predictor"""
-        # Load and store the dataset
-        self.d = pd.read_csv(data_path)
+        # Load and store the dataset(s)
+        list_ = []
+        for path in data_paths:
+            df = pd.read_csv(path)
+            list_.append(df)
+
+        self.d = pd.concat(list_)
 
         # Create a list of all teams in the dataset
         self.t = self.d.groupby('HomeTeam').groups.keys()
