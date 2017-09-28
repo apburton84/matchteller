@@ -64,8 +64,8 @@ MatchTeller prediction for Stoke vs Arsenal, given the 2015-2016 premier league 
 
 ```
       AWAY     DRAW     HOME
-----  -------  -------  -------
-PROB  36.9964  20.0858  42.8832
+----  ------  -------  -------
+PROB  57.105  18.6692  24.2191
 ```
 
 ### Output Formats
@@ -77,6 +77,40 @@ MatchTeller current support the output of the following formats:
 * JSON
 * XML
 * CSV
+
+### Using MatchTeller as a python library
+
+Using MatchTeller in your own applications is easy, simply import matchteller.
+
+```
+import matchteller as mt
+```
+
+At present MatchTeller had a single predictor, the ``PoissonPredictor``.
+
+```
+p = mt.PoissonPredictor('E0.csv')
+```
+
+Before we can perform a prediction we must call ``calc()``, which calculates the required team and league statistics.
+
+```
+p.calc()
+```
+
+To perform a prediction call ``predict()`` and pass in the home and away teams.
+
+```
+outcome = p.predict('Stoke', 'Arsenal')
+```
+
+The model will return a dataframe containing the predicted outcome.
+
+```
+      AWAY       DRAW       HOME
+PROB  57.105048  18.669206  24.219059
+
+```
 
 ## Built With
 
