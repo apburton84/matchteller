@@ -87,18 +87,19 @@ class PoissonPredictor(object):
 
         self.home_team_advant = self.d.groupby('FTR')['FTR'].count()['H'] / ((self.d.groupby('FTR')['FTR'].count()['H'] + self.d.groupby('FTR')['FTR'].count()['A']) / 2)
 
-    def predict(self, home_team, away_team):
-        """ Predict probability of the matches final outcomes"""
 
-        self.m_score = pd.DataFrame(
-            np.zeros((10, 10), dtype=int),
-            index=np.arange(10)
+    def predict(self, home_team, away_team):
+        """ Predict probability of the matches final outcome"""
+
+        self.m_score_pre = pd.DataFrame(
+            np.zeros((11, 11), dtype=int),
+            index=np.arange(11)
         )
 
-        self.m_score = self.m_score.apply(
+        self.m_score = self.m_score_pre.apply(
             lambda x: x + (
-                (st.poisson.pmf(x.index, self.home_team_advant * self.t_goals_exp.loc[home_team]['HGE'], 1)) *
-                (st.poisson.pmf(x.name, self.t_goals_exp.loc[away_team]['AGE'] / self.home_team_advant, 0)) *
+                (st.poisson.pmf(x.index + 1, self.home_team_advant * self.t_goals_exp.loc[home_team]['HGE'], 1)) *
+                (st.poisson.pmf(x.name + 1, self.t_goals_exp.loc[away_team]['AGE'] / self.home_team_advant, 1)) *
                 100
             )
         )
