@@ -2,21 +2,14 @@ import pandas as pd
 import numpy as np
 import scipy.stats as st
 
+
 class PoissonPredictor(object):
     """ Poisson Model to Predict the out of Associate Football Matches"""
 
-    def __init__(self, data_paths=[]):
+    def __init__(self, d):
         """ Initialise the Predictor"""
-        # Load and store the dataset(s)
-        list_ = []
-        for path in data_paths:
-            df = pd.read_csv(path)
-            list_.append(df)
-
-        self.d = pd.concat(list_)
-
-        # Create a list of all teams in the dataset
-        self.t = self.d.groupby('HomeTeam').groups.keys()
+        self.d = d
+        self.t = d.groupby('AwayTeam').groups.keys()
 
     def calc(self):
         """ Calculate a set of base score for each team"""
@@ -90,6 +83,14 @@ class PoissonPredictor(object):
 
     def predict(self, home_team, away_team):
         """ Predict probability of the matches final outcome"""
+        
+        # TODO: Handle the scenario where we do not have training data for a team
+        if home_team not in self.t or away_team not in self.t:
+            return pd.DataFrame({
+                'HOME': 0,
+                'DRAW': 0,
+                'AWAY': 0
+            }, index=['PROB'])
 
         self.m_score_pre = pd.DataFrame(
             np.zeros((11, 11), dtype=int),
@@ -117,4 +118,3 @@ class PoissonPredictor(object):
         }, index=['ODDS'])
 
         return self.m_outcome_prob
-
