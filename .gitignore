@@ -91,3 +91,9 @@ ENV/
 
 # SQL Dumps
 *.sql
+
+# Contents of data folder
+data/*
+
+# Spacevim project config
+.SpaceVim.d/
