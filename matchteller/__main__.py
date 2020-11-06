@@ -1,15 +1,10 @@
 import argparse
 
-from poisson_predictor import PoissonPredictor
 from data_provider import DataProvider
-
-from helpers import output_as
-from helpers import predictor_output_as
-from helpers import matches_from_season
-from helpers import get_data_file_paths
-from helpers import accuracy_calc
-from helpers import predict_win_lose_draw
-
+from helpers import (accuracy_calc, get_data_file_paths, matches_from_season,
+                     output_as, predict_win_lose_draw, predictor_output_as,
+                     start_timer, stop_timer)
+from poisson_predictor import PoissonPredictor
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -23,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument('--home-team', metavar='string', help='the home team')
     parser.add_argument('--away-team', metavar='string', help='the away team')
     parser.add_argument('--output', metavar='type', help='output as table, html, csv, json, xml')
+    parser.add_argument('--report', action='store_true', help='include output report')
 
     args = parser.parse_args()
 
@@ -36,8 +32,12 @@ if __name__ == "__main__":
 
         # TODO: At the moment only pre-season data is used as training data.
         #       Ideally, we would use all matches up until the match we wish
-        #       to predict. 
+        #       to predict.
         training_data = data_provider.matches(before_season=args.season)
+
+        # TODO: Primative goal pooling
+        training_data['FTHG'] = training_data.apply(lambda x: x['FTHG'] if x['FTHG'] <= 4 else 4, axis=1)
+        training_data['FTAG'] = training_data.apply(lambda x: x['FTAG'] if x['FTAG'] <= 4 else 4, axis=1)
 
         predictor = PoissonPredictor(training_data)
 
@@ -45,36 +45,48 @@ if __name__ == "__main__":
 
         season_matches = data_provider.matches(season=args.season)
 
-        failed_predictions = 0
-        correct_predictions = 0
-        for index, match in season_matches.iterrows():
-            predicted_probs = predictor.predict(match['HomeTeam'],
-                                                match['AwayTeam'])
+        start_time = start_timer()
 
-            predicted_probs = predicted_probs.to_dict()
-            predicted_result = predict_win_lose_draw(predicted_probs)
+        season_matches = season_matches.apply(predictor.predict, axis=1)
+        season_matches = season_matches.apply(predict_win_lose_draw, axis=1)
+        
+        # TODO: refactor to better location in project
+        season_matches['PC'] = season_matches.apply(lambda x: 'Y' if x['PFTR'] == x['FTR'] else 'N', axis=1)
 
-            output = {'probability': predicted_probs,
-                      'prediction': predicted_result,
-                      'result': match['FTR']}
+        # TODO: refactor to better location in project
+        failed_predictions = season_matches[season_matches['PFTR'] == 'F'].shape[0]
+        correct_predictions = season_matches[season_matches['PFTR'] == season_matches['FTR']].shape[0]
 
-            if predicted_result == match['FTR']:
-                correct_predictions = correct_predictions + 1
+        elasped_time = stop_timer(start_time)
 
-            if predicted_result == 'F':
-                failed_predictions = failed_predictions + 1
+        if (args.report):
+            output_as({
+               'Datapoints': [predictor.d.shape[0]],
+               'Season': [args.season],
+               'Matches': [season_matches.shape[0]],
+               'Correct': [correct_predictions],
+               'Failed': [failed_predictions],
+               'Accuracy': [accuracy_calc(season_matches.shape[0] - failed_predictions, correct_predictions)],
+               'Elasped Time': [elasped_time] 
+            }, args.output.upper())
+         
+        output_as({
+            'Date': (season_matches['Date'].dt.strftime('%m/%d/%Y')).tolist(),
+            'Home': season_matches['HomeTeam'].tolist(),
+            'HAS': season_matches['HAS'].tolist(),
+            'HDS': season_matches['HDS'].tolist(),
+            'HGE': season_matches['HGE'].tolist(),
+            'Away': season_matches['AwayTeam'].tolist(),
+            'AAS': season_matches['AAS'].tolist(),
+            'ADS': season_matches['ADS'].tolist(),
+            'AGE': season_matches['AGE'].tolist(),
+            'Result': season_matches['FTR'].tolist(),
+            'Predict': season_matches['PFTR'].tolist(),
+            'FTHG': season_matches['FTHG'].tolist(), 
+            'FTAG': season_matches['FTAG'].tolist(), 
+            'Correct': season_matches['PC'].tolist()
+        }, args.output.upper())
 
-            # FIXME: this should be predictor_output_as()
-            # predictor_output_as(output, 'TABLE')
-
-        summary = {'datapoints': [predictor.d.shape[0]],
-                   'season': [args.season],
-                   'matches': [season_matches.shape[0]],
-                   'correct': [correct_predictions],
-                   'failed': [failed_predictions],
-                   'accuracy': [accuracy_calc(season_matches.shape[0] - failed_predictions, correct_predictions)]}
-
-        output_as(summary, 'TABLE')
 
     if args.match_data and args.home_team and args.away_team:
         data_provider = DataProvider(match_data_file_paths)

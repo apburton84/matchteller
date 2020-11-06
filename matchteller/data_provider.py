@@ -67,7 +67,7 @@ class DataProvider(object):
         date_range = pd.date_range(start=start_date, end=end_date)
         mask = self.d['Date'].map(lambda row: str(row.date()) in date_range)
 
-        return self.d.loc[mask]
+        return pd.DataFrame(self.d.loc[mask])
 
     def season_to_date_range(self, season):
         return str(season) + '-08-01', str(int(season) + 1) + '-05-31'

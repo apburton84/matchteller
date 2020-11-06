@@ -4,21 +4,28 @@ import pandas as pd
 import numpy as np
 import json
 import os
+import time
 
+def start_timer():
+    return time.time()
+
+def stop_timer(start):
+    end = time.time()
+    return end- start
 
 def predict_win_lose_draw(prediction):
-    predicted_result = 'F'
-    if prediction['HOME']['PROB'] > prediction['AWAY']['PROB']:
-        predicted_result = 'H'
+    prediction['PFTR'] = 'F'
+    if prediction['PHP'] > prediction['PAP']:
+        prediction['PFTR'] = 'H'
 
-    if prediction['AWAY']['PROB'] > prediction['HOME']['PROB']:
-        predicted_result = 'A'
+    if prediction['PAP'] > prediction['PHP']:
+        prediction['PFTR'] = 'A'
 
-    if ((prediction['DRAW']['PROB'] > prediction['HOME']['PROB']) and
-        (prediction['DRAW']['PROB'] > prediction['AWAY']['PROB'])):
-        predicted_result = 'D'
+    if ((prediction['PDP'] > prediction['PHP']) and
+        (prediction['PDP'] > prediction['PAP'])):
+        prediction['PFTR'] = 'D'
 
-    return predicted_result
+    return prediction
 
 
 def get_data_file_paths():
@@ -47,7 +54,7 @@ def output_as(data, format_as):
             data,
             headers='keys',
             tablefmt='simlpe'
-        ))
+        ), '\n')
 
 
 def predictor_output_as(predictor, format_as):
