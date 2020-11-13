@@ -13,6 +13,11 @@ def stop_timer(start):
     end = time.time()
     return end- start
 
+def apply_goal_pooling(data, at):
+    data['FTHG'] = data.apply(lambda x: x['FTHG'] if x['FTHG'] <= at else at, axis=1)
+    data['FTAG'] = data.apply(lambda x: x['FTAG'] if x['FTAG'] <= at else at, axis=1)
+    return data
+
 def predict_win_lose_draw(prediction):
     prediction['PFTR'] = 'F'
     if prediction['PHP'] > prediction['PAP']:

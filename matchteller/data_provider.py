@@ -28,21 +28,25 @@ class DataProvider(object):
         # Create a single dataset of all CSV files
         self.d = pd.concat(list_, ignore_index=True)
 
+        # self.d['Date'] = pd.to_datetime(self.d['Date'])
+        # self.d['Date'] = self.d['Date'].dt.strftime('%d/%m/%Y')
+
         # Remove any row containing all nan
         self.d = self.d.dropna(how='all')
 
         # Sort by match date
         self.d = self.d.sort_values(by="Date")
 
-    def matches(self, season=False, before_season=False):
+    def matches(self, date=False, season=False, before_season=False):
         """ Get Matches from dataset, all or by season """
-        if season:
+        if date:
+            # TODO: consider better start date for this scenario
+            return self.filter_by_date('1970-01-01', date)
+        elif season:
             start_date, end_date = self.season_to_date_range(season)
-            # print(start_date, end_date)
             return self.filter_by_date(start_date, end_date)
         elif before_season:
             start_date, end_date = self.season_to_date_range(before_season)
-
             # TODO: consider better start date for this scenario
             return self.filter_by_date('1970-01-01', start_date)
         else:
@@ -65,7 +69,7 @@ class DataProvider(object):
     def filter_by_date(self, start_date, end_date):
         """ Date range based filtering of the dataset """
         date_range = pd.date_range(start=start_date, end=end_date)
-        mask = self.d['Date'].map(lambda row: str(row.date()) in date_range)
+        mask = self.d['Date'].map(lambda row: str(row) in date_range)
 
         return pd.DataFrame(self.d.loc[mask])
 

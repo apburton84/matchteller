@@ -85,7 +85,7 @@ class PoissonPredictor(object):
         """ Predict probability of the matches final outcome"""
         home_team = data['HomeTeam']
         away_team = data['AwayTeam']
-        
+       
         # TODO: Handle the scenario where we do not have training data for a team
         if home_team not in self.t or away_team not in self.t:
             data['Home_P'], data['Draw_P'], data['Away_P'] = [0,0,0]
