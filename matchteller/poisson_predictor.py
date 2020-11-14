@@ -138,4 +138,10 @@ class PoissonPredictor(object):
         data['PDP'] = self.m_outcome_prob['DRAW']['PROB']
         data['PAP'] = self.m_outcome_prob['AWAY']['PROB']
 
+        # Update the training data with this macth
+        self.d = self.d.append(data)
+
+        # Re-calculate the team strengths
+        self.calc()
+
         return data
